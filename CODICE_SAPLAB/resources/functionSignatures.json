@@ -1,0 +1,543 @@
+{
+  "_schemaVersion": "1.0.0",
+  "saplab.create":
+  {  
+     "inputs":
+     [
+        {"name":"Attributes","kind":"namevalue", "type":["char", "string", "choices={'static-planeframe','static-spaceframe','static-planestrain','static-planestress','coupled-static-planestress'}"], "purpose":"Define Analysis Type \nclass: char | string \ndefault value: static-planeframe "}
+     ],
+     "description": "Create a Finite Element Model"
+  },
+  "saplab.save":
+  {  
+     "inputs":
+     [
+        {"name":"femodel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"'FileName'","kind":"required", "type":["char", "string", "choices={'FileName'}"]},
+        {"name":"name","kind":"required", "type":["char", "string"], "purpose":"Define File Name\nCharacter vector | String scalar"}
+     ],
+     "description": "Save SAPLAB models"
+  }, 
+   "saplab.open":
+  {  
+     "inputs":
+     [
+        {"name":"FileName","kind":"required", "type":["char", "string"], "purpose":"Define File Name\nCharacter vector | String scalar"}
+     ],
+     "description": "Open SAPLAB models"
+  }, 
+   "saplab.example":
+  {  
+     "inputs":
+     [
+        {"name":"ExampleName","kind":"required", "type":["char", "string", "choices={'createModelsExample','saveModelExample','openModelExample','checkInMatFile','executeSaplabUI','addPointsExample','addLinesExample','trimLinesExample','trimLinesAtLocationExample','addPrimitivesExample','trimEdgeExample','geomCompositionExamples','setMaterialExample','findMaterialPropertiesExample','LinearFRPBeam','NonLinearFRPBeam','applyDistributedExamples','createFRPExample'}"], "purpose":"Example name to open\nCharacter vector | String scalar"}
+     ],
+     "description": "Open SAPLAB examples"
+  },   
+  "saplab.addpoint":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"coordinates","kind":"required", "type": "double", "purpose":"Define point coordinates in GCS [x,y,(z)]\nsingle | double"}
+     ],
+     "description": "Add POINT to finite element model geometry"
+  },    
+  "saplab.addline":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"InputOption","kind":"required", "type":["char", "string", "choices={'Coordinates'}"], "purpose":"Define input mode"},
+        {"name":"coord1","kind":"required", "type": "double", "purpose":"Define start point coordinate\nsingle | double"},
+        {"name":"coord2","kind":"required", "type": "double", "purpose":"Define end point coordinate\nsingle | double"}
+     ],
+     "description": "Add LINE segment to finite element model geometry"
+  },
+  "saplab.addline":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"InputOption","kind":"required", "type":["char", "string", "choices={'Connect'}"], "purpose":"Define input mode"},
+        {"name":"point1ID","kind":"required", "type": "double", "purpose":"Define start point ID\nsingle | double | uint"},
+        {"name":"point2ID","kind":"required", "type": "double", "purpose":"Define end point ID\nsingle | double | uint"}
+     ],
+     "description": "Add LINE segment to finite element model geometry"
+  },
+  "saplab.addcirc":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"[xc,yc]","kind":"required", "type": "double", "purpose":"Define x-coordinate of the center\nsingle | double | uint"},
+        {"name":"radius","kind":"required", "type": "double", "purpose":"Radius\nsingle | double | uint | positive number"}
+     ],
+     "description": "Add CIRCLE primitive to finite element model geometry"
+  },
+  "saplab.addellip":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"[xc,yc]","kind":"required", "type": "double", "purpose":"Define center coordinates\nsingle | double | uint"},
+        {"name":"[ra,rb]","kind":"required", "type": "double", "purpose":"Define semiaxis size\nsingle | double | uint"},
+        {"name":"phi","kind":"required", "type": "double", "purpose":"Rotation\n(Optional) single | double | uint "}
+     ],
+     "description": "Add ELLIPSE primitive to finite element model geometry"
+  },
+  "saplab.addrect":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"[xmin xmax ymin ymax]","kind":"required", "type": "double", "purpose":"Corner coordinates\nsingle | double | uint"}
+     ],
+     "description": "Add RECTANGLE primitive to finite element model geometry"
+  },
+  "saplab.addpoly":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"X","kind":"required", "type": "double", "purpose":"X-Coordinate of vertices\nvector or real numbers"},
+        {"name":"Y","kind":"required", "type": "double", "purpose":"Y-Coordinate of vertices\nvector or real numbers"}
+     ],
+     "description": "Add POLYGON primitive to finite element model geometry"
+  },
+ 
+  "saplab.booloper":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"setFormula","kind":"required", "type":["char", "string"], "purpose":"Set formula\nCharacter vector | String scalar"},
+        {"name":"KeepInternalEdges","kind":"namevalue", "type":["char", "string", "choices={'on','off'}"]}
+     ],
+     "description": "Form solid 2-D geometry"
+  },   
+  "gdmasdef":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"gdmtag","kind":"required", "type":["char", "string"], "purpose":"Set Tag\nCharacter vector | String scalar"}
+     ],
+     "description": "Import 2-D geometry"
+  },
+
+  "saplab.trimEdge":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"Tag","kind":"required", "type":["char", "string"]},
+        {"name":"'Edge'","kind":"required", "type":["char", "string", "choices={'Edge'}"]},
+        {"name":"value","kind":"required", "type":["char", "string"], "purpose":"[Edge ID, Distance]\npositive number"}
+     ],
+     "description": "Trim linear edge."
+  },
+  "saplab.trimLine":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"'Line'","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"value","kind":"required", "type": "double", "purpose":"[LineID, nDiv]\ndouble | positive number"}
+     ],
+     "description": "Trim line into equal segments."
+  },
+  "saplab.trimLineAtLocation":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required"},
+        {"name":"'Line'","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"value1","kind":"required", "type": "double", "purpose":"[LineID, Distance]\ndouble | positive number"},
+        {"name":"'Origin'","kind":"required", "type":["char", "string", "choices={'Origin'}"]},
+        {"name":"value2","kind":"required", "type":["char", "string", "choices={'start','end'}"]}
+     ],
+     "description": "Trim line at specific location."
+  },
+  "saplab.setMaterialProperties":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Line','Face','Reinforcement'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"YoungsModulus","kind":"namevalue", "type":["double"], "purpose":"Set YoungsModulus value \n type: numeric | must be positive "},     
+        {"name":"PoissonsRatio","kind":"namevalue", "type":["double"], "purpose":"Set PoissonsRatio value \n type: numeric "},     
+        {"name":"MassDensity","kind":"namevalue", "type":["double"], "purpose":"Set Mass Density value \n type: numeric | must be positive "},  
+        {"name":"CTE","kind":"namevalue", "type":["double"], "purpose":"Set Coefficient of Thermal Expansion value \n type: numeric | must be positive "}
+     ],
+     "purpose": "Assign structural material properties to geometric regions"
+  },
+  "saplab.getMaterialProperties":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel.MaterialProperties","kind":"required", "type":["sap.MaterialPropertiesRecords"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Line','Face','Reinforcement'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set Region ID value \ntype: numeric | integer "}
+     ],
+     "purpose": "Find structural material properties"
+  },
+  "saplab.setSectionProperties":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"Area","kind":"namevalue", "type":["double"], "purpose":"Set Cross-Sectional Area value \n type: numeric | must be positive "},     
+        {"name":"TorsionalConstant","kind":"namevalue", "type":["double"], "purpose":"Set TorsionalConstant value \ntype: numeric scalar | positive number "},     
+        {"name":"Inertia","kind":"namevalue", "type":["double"], "purpose":"Set Inertia properties value \n type: numeric scalar or vector\nExample: [Iy'] or [Iy' Iz']"}
+     ],
+     "purpose": "Assign section properties to geometric regions"
+  },
+  "saplab.getSectionProperties":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel.SectionProperties","kind":"required", "type":["sap.SectionPropertiesRecords"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set Region ID value \ntype: numeric | integer "}
+     ],
+     "purpose": "Find structural section properties"
+  },
+  "saplab.applyBody":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Line','Face'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"GravitationalAcceleration","kind":"namevalue", "type":["double"], "purpose":"Set Gravitational Acceleration \n type: numeric | must be positive "},  
+        {"name":"Temperature","kind":"namevalue", "type":["double"], "purpose":"Set Temperature value \n type: numeric | must be positive "}
+     ],
+     "purpose": "Apply structural body loads"
+  },
+  "saplab.applyDistributed":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"'RegionType'","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},  
+        {"name":"Force","kind":"namevalue", "purpose":"Set distributed forces vector data \nnumeric | function_handle"},
+        {"name":"Moment","kind":"namevalue", "purpose":"Set distributed moment vector data \nnumeric | function_handle"}
+     ],
+     "purpose": "Apply distributed loads on structural elements"
+  },
+  "saplab.applyDistributed":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"'RegionType'","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},  
+        {"name":"XForce","kind":"namevalue", "purpose":"Set distributed x-force value \nnumeric | function_handle"},
+        {"name":"YForce","kind":"namevalue", "purpose":"Set distributed y-force value value \nnumeric | function_handle"},
+        {"name":"ZForce","kind":"namevalue", "purpose":"Set distributed z-force value \nnumeric | function_handle"},
+        {"name":"XMoment","kind":"namevalue", "purpose":"Set distributed torque moment value \nnumeric | function_handle"},
+        {"name":"YMoment","kind":"namevalue", "purpose":"Set distributed y-moment value \nnumeric | function_handle"},
+        {"name":"ZMoment","kind":"namevalue", "purpose":"Set distributed z-moment value \nnumeric | function_handle"}
+     ],
+     "purpose": "Apply distributed loads on structural elements"
+  },
+  "saplab.findDistrLoad":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel.DistributedLoads","kind":"required", "type":["sap.MaterialPropertiesRecords"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set Region ID value \ntype: numeric | integer "}
+     ],
+     "purpose": "Find structural distributed laods"
+  },
+  "saplab.structuralFEI":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"HorizontalStiffness","kind":"namevalue", "purpose":"Set kh value\nnumeric | function_handle"},  
+        {"name":"VerticalStiffness","kind":"namevalue", "purpose":"Set kv value\nnumeric | function_handle"}
+     ],
+     "purpose": "Apply Interface"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"Constraint","kind":"namevalue","type":["string","char","choices={'fixed','free','pinned','roller-x','roller-y','roller-z','roller-xy','roller-xz','roller-yz'}"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"Displacement","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"Pressure","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"Rotation","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"XDisplacement","kind":"namevalue","type":["double"]},  
+        {"name":"YDisplacement","kind":"namevalue","type":["double"]},  
+        {"name":"ZDisplacement","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"XRotation","kind":"namevalue","type":["double"]},  
+        {"name":"YRotation","kind":"namevalue","type":["double"]}, 
+        {"name":"ZRotation","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"Force","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"Moment","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"XForce","kind":"namevalue","type":["double"]},
+        {"name":"YForce","kind":"namevalue","type":["double"]},
+        {"name":"ZForce","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setBoundaryCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Point','Vertex','Edge'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"XMoment","kind":"namevalue","type":["double"]},
+        {"name":"YMoment","kind":"namevalue","type":["double"]},
+        {"name":"ZMoment","kind":"namevalue","type":["double"]}
+     ],
+     "purpose": "Apply boundary condition"
+  },
+  "saplab.setReleaseCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"'RegionType'","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"'RegionID'","kind":"required", "type":["double"], "purpose":"Set ID value \ntype: numeric | integer "},     
+        {"name":"Type","kind":"namevalue","type":["string","char","choices={'nx','ty','tz','mx','my','mz'}"]},  
+        {"name":"Location","kind":"namevalue","type":["string","char","choices={'start','end','both'}"]}
+     ],
+     "purpose": "Assign end-release"
+  },
+  "sap.StructuralModel.structuralREI":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"'Edge'","kind":"required", "type":["char", "string", "choices={'Edge'}"]},
+        {"name":"'RegionID'","kind":"required", "type":["double"], "purpose":"Set RegionID value \ntype: numeric | integer "},     
+        {"name":"'Thickness'","kind":"required", "type":["char", "string", "choices={'Thickness'}"]},
+        {"name":"tValue","kind":"required","type":["double"]}
+     ],
+     "purpose": ""
+  },
+  "sap.SectionPropertiesRecords.findSectionProperties":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel.SectionProperties","kind":"required", "type":["sap.SectionPropertiesRecords"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set Region ID value \ntype: numeric | integer "}
+     ],
+     "purpose": ""
+  },
+  "sap.BodyLoadsRecords.findStructuralBodyLoads":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel.BodyLoads","kind":"required", "type":["sap.BodyLoadsRecords"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Line','Face'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set Region ID value \ntype: numeric | integer "}
+     ],
+     "purpose": ""
+  },
+  "sap.DiscretizedFEModel.findMesh":
+  {  
+     "inputs":
+     [
+        {"name":"structuralModel.Mesh","kind":"required", "type":["sap.DiscretizedFEModel"]},
+        {"name":"'Parameter'","kind":"required", "type":["char", "string", "choices={'Parameter'}"]},
+        {"name":"MeshParameter","kind":"required", "type":["char", "string", "choices={'Element','Node'}"]},
+        {"name":"RegionType","kind":"required", "type":["char", "string", "choices={'Face','Edge','Vertex','Point','Line','Reinforcement','Spring'}"], "purpose":"Set Region Type value"},
+        {"name":"RegionID","kind":"required", "type":["double"], "purpose":"Set Region ID value \ntype: numeric | integer "}
+     ],
+     "purpose": ""
+  },
+  "saplab.mesh":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel.Geometry","kind":"required", "type":["sap.Geometry"]},
+        {"name":"'RegionType'","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"]},
+        {"name":"ElementSize","kind":"namevalue", "type":["double"]}
+     ],
+     "purpose": "Mesh the model geometry"
+  },  
+  "saplab.mesh":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel.Geometry","kind":"required", "type":["sap.Geometry"]},
+        {"name":"Hmin","kind":"namevalue", "type":["double"]},
+        {"name":"Hmax","kind":"namevalue", "type":["double"]} 
+     ],
+     "purpose": "Mesh the model geometry"
+  },
+  "saplab.mesh":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel.Geometry","kind":"required", "type":["sap.Geometry"]},
+        {"name":"Hface","kind":"namevalue", "type":["double"]},
+        {"name":"Hedge","kind":"namevalue", "type":["double"]},
+        {"name":"Hvertex","kind":"namevalue", "type":["double"]}  
+     ],
+     "purpose": "Mesh the model geometry"
+  },
+  "saplab.getReleaseCondition":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel.ReleaseConditions","kind":"required", "type":["sap.StructuralRCRecords"]},
+        {"name":"'RegionType'","kind":"required", "type":["char", "string", "choices={'Line'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"]}
+     ],
+     "purpose": "Find Release Conditions"
+  },
+
+  "saplab.findElementsInMesh":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel.Mesh","kind":"required", "type":["sap.DiscretizedFEModel"]},
+        {"name":"'RegionType'","kind":"required", "type":["char", "string", "choices={'Line','Face','Edge','Vertex','Point'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"]}
+     ],
+     "purpose": "Find Elements In Mesh"
+  },
+  "saplab.findNodesInMesh":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel.Mesh","kind":"required", "type":["sap.DiscretizedFEModel"]},
+        {"name":"'RegionType'","kind":"required", "type":["char", "string", "choices={'Line','Face','Edge','Vertex','Point'}"]},
+        {"name":"RegionID","kind":"required", "type":["double"]}
+     ],
+     "purpose": "Find Nodes In Mesh"
+  },
+  "saplab.defineMatModel":
+  {  
+     "inputs":
+     [
+        {"name":"Force","kind":"namevalue", "type":["double"]},
+        {"name":"u","kind":"namevalue", "type":["double"]}
+
+     ],
+     "purpose": "Generate a Stress/Strain Curve"
+  },  
+  "sap.FEModel.solve":
+  {  
+     "inputs":
+     [
+        {"name":"structuralmodel","kind":"required", "type":["sap.FEModel"]},
+        {"name":"'SolverType'","kind":"required", "type":["char", "string", "choices={'SolverType'}"]},
+        {"name":"value","kind":"required", "type":["char", "string", "choices={'Linear','Nonlinear'}"]},
+        {"name":"AbsTol","kind":"namevalue", "type":["double"]},
+        {"name":"RelTol","kind":"namevalue", "type":["double"]},
+        {"name":"MinTol","kind":"namevalue", "type":["double"]},
+        {"name":"NumIter","kind":"namevalue", "type":["double"]}
+     ],
+     "purpose": "Generate a Stress/Strain Curve"
+  }, 
+
+  "defsigeps":
+  {  
+     "inputs":
+     [
+        {"name":"stress","kind":"namevalue", "type":["double"]},
+        {"name":"strain","kind":"namevalue", "type":["double"]}
+
+     ],
+     "purpose": "Generate a Stress/Strain Curve"
+  }
+}

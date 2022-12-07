@@ -1,0 +1,206 @@
+classdef (Sealed) StructuralFEInterfaceRecords < handle
+% sap.StructuralFEInterfaceRecords Description: Records all structural interface 
+%       properties assignments across the boundary regions of the domain/ 
+%       or subdomain.    
+%       sap.StructuralFEInterfaceRecords holds a record of the the
+%       assignements of structural interface across the boundary regions of
+%       the domain or subdomain.
+%       This object is not created directly but is created by using
+%       structuralFEI(structuralmodel,NAME,VALUE) function. Each
+%       assignement is stored in FEInterfaceAssignments public
+%       properties.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%                  Structural Finite Element Interface                      %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+properties (SetObservable)
+    % FEInterfaceAssignments - Vector of structural interface assignments
+    %    A vector containing the structural interface assignments to the
+    %    geometric boundary regions. Each entry in the vector is a
+    %    sap.StructuralFEInterfaceAssignment           
+    FEInterfaceAssignments;
+end
+
+methods 
+    %methods declaration.
+    fei = findStructuralFEI(self, varargin);
+end
+
+methods
+    function self = StructuralFEInterfaceRecords(sfeam)
+        if isprop(sfeam, 'StructuralFEInterface')
+            if isempty(sfeam.StructuralFEInterface)
+                sfeam.StructuralFEInterface = self;
+                self.ParentModel = sfeam;
+                return
+            end
+            self = sfeam.StructuralFEInterface;
+            self.ParentModel=sfeam;
+        else
+            self=[];
+        end
+    end
+
+    function feistruct = packProperties(self, varargin)
+        numAssignements = numel(self.FEInterfaceAssignments);           
+        springcoefs=self.formFEICoefficientsStruct();   
+        
+        % for linear elastic case
+        springcoefs=packElasticLinearSpringCoefficients(self,springcoefs,numAssignements);
+        if nargout>0
+            feistruct=springcoefs;
+        end
+    end
+end
+
+methods (Access='private',Hidden)
+    function springcoefs=packElasticLinearSpringCoefficients(self, springcoefs, numAssignements)
+    for i = 1:numAssignements
+        thisfei=self.FEInterfaceAssignments(i);
+        thisfeiRegionType=thisfei.RegionType;
+        thisfeiRegionID=thisfei.RegionID;
+        K=thisfei.VerticalStiffness;
+        isHorizontal = false;
+        if isempty(K)
+            K=thisfei.HorizontalStiffness;
+            isHorizontal = true;
+        end
+        hasKfunction=~isempty(thisfei.kfun);
+        springcoefs.type{end+1,1} = class(self);
+        springcoefs.regiontype{end+1,1}=thisfeiRegionType;
+        springcoefs.region{end+1,1}=thisfeiRegionID;
+        springcoefs.elements{end+1,1}=self.ParentModel.Mesh.Associativity.Element.Spring{i};
+        springcoefs.location{end+1,1}=self.ParentModel.Mesh.state.t(self.ParentModel.Mesh.Associativity.Element.Spring{i},1:2)';
+        springcoefs.c{end+1,1} = sap.StructuralFEInterfaceRecords.formulateFEISpringsMatrices(K);
+        springcoefs.hasGlobalCoefficients{end+1,1}=true;
+        if ~hasKfunction
+        springcoefs.YoungsModulus{end+1,1}=K;   
+        else
+        springcoefs.YoungsModulus{end+1,1}=thisfei.kfun ;
+        self.HasNonLinearCoefficients=true;
+        end
+        springcoefs.isHorizontal{end+1,1} = isHorizontal;
+    end           
+    end
+end
+
+methods (Access={?sap.StructuralModel},Static)
+    function coefstruct=packNonLinearSpringCoefficients(coefstruct, coefstructIndex,u0, cTol, eTol) %for non linear solver
+       nonlinearFunction = coefstruct.k.YoungsModulus{coefstructIndex};
+       location=coefstruct.k.location{coefstructIndex};
+       solution=u0(location);
+       du=(solution(2,:)-solution(1,:));
+       kcoeff=nonlinearFunction(cTol,eTol,du);
+       k=sap.StructuralFEInterfaceRecords.formulateFEISpringsMatrices(kcoeff);
+       coefstruct.k.c{coefstructIndex}=k;
+       coefstruct.k.hasGlobalCoefficients{coefstructIndex}=false;
+    end
+end
+
+methods (Access = public)
+    function [t,tp,L,kcoef,du,F]=calcElasticTangentialStress(self,R)
+
+        feistruct = self.packProperties();
+        for i=1:numel(feistruct.regiontype)
+
+            if ~feistruct.isHorizontal{i}
+                continue
+            end
+            feistruct.YoungsModulus
+            u = R.Tensors.Global;
+            location = feistruct.location{i};
+            solution = u(location);
+            du = (solution(1,:)-solution(2,:)); %elongazione molla
+            kcoef = feistruct.YoungsModulus{i}; %rigidezza molla
+        
+            if isnumeric(kcoef)
+                F = kcoef*du;      
+            else
+                [kcoef,F] = kcoef([],[],du);
+            end
+            
+            Kel = max(kcoef);
+            iel = find(kcoef==Kel);
+            Fel = Kel*du(iel);
+            F(iel) = Fel;
+
+            %la forza calcolata deve essere trasformata in una tensione.
+            %Calcolo quindi l'area di pertinenza su cui agisce F. Ricerco
+            %quindi le coordinate dei nodi del bordo rinforzato della trave 
+            
+            edgeNodesID = findMesh(R.Mesh,'Parameter','Node','Edge',feistruct.region{i});
+            cNodes = R.Mesh.Nodes(:,edgeNodesID);
+
+            %considerando uno spessore unitario dell'area di pertinenza,
+            %non rimane che determinare la lunghezza di quest'ultima. 
+            cNodes = [cNodes(:,1:end-1);cNodes(:,2:end)];
+            aLen   = sqrt((cNodes(3,:)-cNodes(1,:)).^2 + (cNodes(4,:)-cNodes(2,:)).^2);
+            aLen   = 2*[aLen,aLen(end)];
+            
+            %calcolo la tensione lungo il rinforzo
+            t  = F./aLen;       %vettore tensione.
+            tp = max(abs(t)); % tensione di picco.
+
+            %calcola la lunghezza totale 
+            tLen = sqrt((cNodes(3,end)-cNodes(1,1)).^2 + (cNodes(4,end)-cNodes(2,1)).^2);
+            L = linspace(0,tLen,numel(F));
+
+        end
+    end    
+end
+
+methods (Access=private,Hidden,Static)
+
+    function springcoefs=formFEICoefficientsStruct()
+        springcoefs.type=[];
+        springcoefs.regiontype=[];
+        springcoefs.region=[];
+        springcoefs.elements=[];
+        springcoefs.location=[];
+        springcoefs.YoungsModulus=[];
+        springcoefs.c=[];  
+        springcoefs.hasGlobalCoefficients=[];
+        springcoefs.isHorizontal=[];
+    end
+
+    function Kcoef = formulateFEISpringsMatrices(coef)
+        if ~isscalar(coef)
+            eqns = sap.elements.SpringEquations(1);
+            Kcoef=formNonLinearSpringMatrix(eqns,coef);
+        else
+            eqns = sap.elements.SpringEquations(1);
+            Kcoef=formNumericSpringMatrix(eqns,coef);
+        end
+    end
+
+end
+
+methods (Hidden, Access = 'private')
+    function n = nRegions(self, rtype)
+        switch rtype
+            case 'Reinforcement'
+                n = numel(self.ParentModel.StructuralReinforcement.StructuralReinforcementAssignments);   
+            case 'Edge'
+                n = self.ParentModel.Geometry.NumEdges;
+            case 'Vertex'
+                n = self.ParentModel.Geometry.NumVertices;
+             
+            otherwise
+                error('Invalid region type');
+        end
+    end
+end
+
+properties (Hidden)
+    ParentModel;
+    Coefficients;
+    cTol;
+    eTol;
+end
+
+properties (Hidden)
+    %HasNonLinearCoefficients - Logical value which defines if the FEI
+    %   interface has non linear coefficients.
+    HasNonLinearCoefficients = false;
+end
+end
+

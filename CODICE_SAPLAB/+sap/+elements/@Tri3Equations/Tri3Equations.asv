@@ -1,0 +1,118 @@
+classdef Tri3Equations
+    %LINTRIEQUATIONS Summary of this class goes here
+    %   Detailed explanation goes here
+    
+    properties
+        ElasticityType;
+    end
+
+    properties (Constant)
+        %This property depends on the mesh geometric order.
+        Tri = 3;
+    end
+    
+    methods
+        function self = Tri3Equations(elasType)
+            self.ElasticityType = elasType;
+        end
+        
+        function self = set.ElasticityType(self, elasType)
+            if ~isstring(elasType) && ~ischar(elasType)
+                error('ElasticityType must specified as a character vector or string scalar');
+            end
+            validElasType= ["ps","pn","as"];
+            validatestring(elasType,validElasType);
+            self.ElasticityType = elasType;
+        end
+
+        function c = formulateMaterialCoefficients(self,E,nu)
+            if strcmpi(self.ElasticityType, 'ps')
+                mu =  E/(1-nu^2);
+                c = mu*[1 nu 0; nu 1 0; 0 0 (1-nu)/2];
+            elseif strcmpi(self.ElasticityType, 'pn') 
+                lam = E*nu/((1+nu)*(1-2*nu));
+                c = lam*[1-nu 0 0; 0 1-nu 0; 0 0 (1-2*nu)/2];
+            end 
+        end
+
+        function B=strainDisplacementMatrix(self,x,y,h,ie)
+            %formEpsUMatrices(_) - Form strain displacement matrices for a
+            %   constant triangle.     
+            B=zeros(self.Tri,2*self.Tri*numel(ie)); 
+            b1 = y(2,ie)-y(3,ie); b2 = y(3,ie)-y(1,ie); b3 = y(1,ie)-y(2,ie);
+            c1 = x(3,ie)-x(2,ie); c2 = x(1,ie)-x(3,ie); c3 = x(2,ie)-x(1,ie);    
+            B(1,6*ie-5)=b1./(2*h);
+            B(1,6*ie-3)=b2./(2*h);
+            B(1,6*ie-1)=b3./(2*h);
+            B(2,6*ie-4)=c1./(2*h);
+            B(2,6*ie-2)=c2./(2*h);
+            B(2,6*ie)=c3./(2*h);
+            B(3,6*ie-5)=c1./(2*h);
+            B(3,6*ie-4)=b1./(2*h);
+            B(3,6*ie-3)=c2./(2*h);
+            B(3,6*ie-2)=b2./(2*h);
+            B(3,6*ie-1)=c3./(2*h);
+            B(3,6*ie)=b3./(2*h);  
+            B=reshape(B,self.Tri,6,[]);
+        end
+
+%         function epsuMat = strainDisplacementMatrix(self,x,y,h,ie)
+%             %formEpsUMatrices(_) - Form strain displacement matrices for a
+%             %   constant triangle.
+%             pts=self.Tri;
+%             epsuMat=sparse(pts,2*pts*numel(ie));
+%             b1 = y(2,ie)-y(3,ie); b2 = y(3,ie)-y(1,ie); b3 = y(1,ie)-y(2,ie);
+%             c1 = x(3,ie)-x(2,ie); c2 = x(1,ie)-x(3,ie); c3 = x(2,ie)-x(1,ie);
+%             epsuMat(1,6*ie-5)=b1./(2*h(ie));
+%             epsuMat(1,6*ie-3)=b2./(2*h(ie));
+%             epsuMat(1,6*ie-1)=b3./(2*h(ie));
+%             epsuMat(2,6*ie-4)=c1./(2*h(ie));
+%             epsuMat(2,6*ie-2)=c2./(2*h(ie));
+%             epsuMat(2,6*ie)=c3./(2*h(ie));
+%             epsuMat(3,6*ie-5)=c1./(2*h(ie));
+%             epsuMat(3,6*ie-4)=b1./(2*h(ie));
+%             epsuMat(3,6*ie-3)=c2./(2*h(ie));
+%             epsuMat(3,6*ie-2)=b2./(2*h(ie));
+%             epsuMat(3,6*ie-1)=c3./(2*h(ie));
+%             epsuMat(3,6*ie)=b3./(2*h(ie));     
+%         end
+
+        function f = formulateGravityLoads(self, m, g)
+            if isempty(m) || isempty(g)
+                f = zeros(6,1);
+                return
+            end
+            dir = find(g);
+            if numel(dir)>1
+                error('Unable to set gravity load to both global axis');
+            end
+            f = g(:)*m;
+            f = repmat(f, self.Tri,1)/self.Tri;
+        end
+
+        function f = formulateThermalLoads(self, E,cte,t,tref)
+            if isempty(E) || isempty(cte) || isempty(t)
+                f = zeros(6,1);
+                return;
+            end
+            dt = diff([t,tref]);
+            tt = dt*[cte*E cte*E];
+            f = repmat(tt,self.Tri,1)/self.Tri;
+        end
+
+        function N = shapeFunc(x,y,h)
+            a1 = x(2)*y(3)-x(3)*y(2);
+            a2 = x(3)*y(1)-x(1)*y(3);
+            a3 = x(1)*y(2)-x(2)*y(1);
+            
+            b1 = y(2)-y(3);
+            b2 = y(3)-y(1);
+            b3 = y(1)-y(2);
+            
+            c1 = x(3)-x(2);
+            c2 = x(1)-x(3);
+            c3 = x(2)-x(1);
+        end
+    end
+end
+

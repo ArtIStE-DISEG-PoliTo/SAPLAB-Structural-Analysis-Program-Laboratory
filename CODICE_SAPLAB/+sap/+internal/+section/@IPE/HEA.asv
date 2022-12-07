@@ -1,0 +1,60 @@
+classdef HEA < saplab.internal.SAPSection
+
+    methods
+        function self = HEA(nameID, varargin)
+
+            p = inputParser;
+            addParameter(p, 'Orientation', [], @isnumeric);
+            parse(p, varargin{:});
+
+            narginchk(1,3);
+            nargoutchk(1,1);
+            data = readtable("+saplab\+internal\+section\+data\hea.xlsx");
+            data = table2array(data);
+            if ( isnumeric(nameID) && isscalar(nameID) )
+                sidval = nameID;
+            elseif (ischar(nameID) || isstring(nameID))
+                [~, sidval] = evalc(nameID);
+            end
+            flag = data(:,1) == sidval;
+            if (all(flag == 0))
+                warning('Section not found.');
+                hh = [];
+                return;
+            end       
+
+            sdat = data(sidval, :);
+            b  = sdat(2);
+            h  = sdat(3);
+            tf = sdat(4);
+            tw = sdat(5);
+            r  = sdat(6);  
+
+            %get the roll angle
+            roll = p.Results.Orientation;
+            if ( isempty(roll) )
+                roll = 0;
+            end
+            
+            [dl, hh] = saplab.internal.section.compose_HE_IPE(b, h, tf, tw, r, roll);
+            [g, I] = evaluateProperties( dl );
+            
+            %unpack properties
+            area = g.A;
+            iyy = I.Iuu;
+            izz = I.Ivv;
+            iyz = I.Iuv;
+            jxx = (2*b*tw^3 + (h-tw)*tf^3)/3;
+            i11 = I.I11;
+            i22 = I.I22;
+            t = [I.theta11 I.theta22];
+            self@saplab.internal.SAPSection(area, iyy, izz, iyz, jxx, i11, i22, t);
+
+
+        end
+
+    end
+    methods ( Static = true , Hidden = true )
+        [dl, IH] = constructHEA(b, h, tf, tw, r, roll)
+    end
+end
