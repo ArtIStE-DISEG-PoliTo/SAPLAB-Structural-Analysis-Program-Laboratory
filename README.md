@@ -14,7 +14,7 @@ SAPLAB Structural Analysis Program Laboratory - MATLAB experimental tool for fin
 
 For more information, please visit our official website:
 
-[ArtIStE research Group](http://www.civilml.polito.it/2022/softwares/saplab-structural-analysis-program-laboratory/?preview_id=656&preview_nonce=697eaedc8b&preview=true&_thumbnail_id=664)
+[ArtIStE research Group: SAPLAB](http://www.civilml.polito.it/2022/softwares/saplab-structural-analysis-program-laboratory/)
 
 
 
